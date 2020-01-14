@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 )
 
 var (
@@ -285,7 +286,7 @@ func makeRDSDiskIOMetrics(s *diskIO, constLabels prometheus.Labels) []prometheus
 }
 
 // makeNodeDiskMetrics returns node_exporter-like node_disk_ metrics.
-func makeNodeDiskMetrics(s *diskIO, constLabels prometheus.Labels) []prometheus.Metric {
+func makeNodeDiskMetrics(s *diskIO, constLabels prometheus.Labels, t time.Time) []prometheus.Metric {
 	labels := make(prometheus.Labels, len(constLabels)+1)
 	for k, v := range constLabels {
 		labels[k] = v
@@ -295,12 +296,18 @@ func makeNodeDiskMetrics(s *diskIO, constLabels prometheus.Labels) []prometheus.
 
 	if s.ReadKb != nil {
 		m := diskRead.With(labels)
-		m.Add(float64(*s.ReadKb * 1024))
+		b := float64(*s.ReadKb * 1024)
+		v := testutil.ToFloat64(m)
+		fmt.Printf("%s: adding %f to %s/%s/read (%f -> %f)\n", t, b, labels["instance"], labels["device"], v, v+b)
+		m.Add(b)
 		res = append(res, m)
 	}
 	if s.WriteKb != nil {
 		m := diskWritten.With(labels)
-		m.Add(float64(*s.WriteKb * 1024))
+		b := float64(*s.WriteKb * 1024)
+		v := testutil.ToFloat64(m)
+		fmt.Printf("%s: adding %f to %s/%s/write (%f -> %f)\n", t, b, labels["instance"], labels["device"], v, v+b)
+		m.Add(b)
 		res = append(res, m)
 	}
 
@@ -507,7 +514,7 @@ func (m *osMetrics) makePrometheusMetrics(region string, labels map[string]strin
 	for _, disk := range m.DiskIO {
 		metrics = makeRDSDiskIOMetrics(&disk, constLabels)
 		res = append(res, metrics...)
-		metrics = makeNodeDiskMetrics(&disk, constLabels)
+		metrics = makeNodeDiskMetrics(&disk, constLabels, m.Timestamp.UTC())
 		res = append(res, metrics...)
 	}
 
