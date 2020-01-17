@@ -287,9 +287,11 @@ func makeRDSDiskIOMetrics(s *diskIO, constLabels prometheus.Labels) []prometheus
 // makeNodeDiskMetrics returns node_exporter-like node_disk_ metrics.
 func makeNodeDiskMetrics(s *diskIO, constLabels prometheus.Labels) []prometheus.Metric {
 	labels := make(prometheus.Labels, len(constLabels)+1)
+
 	for k, v := range constLabels {
 		labels[k] = v
 	}
+
 	labels["device"] = s.Device
 	res := make([]prometheus.Metric, 0, 2)
 

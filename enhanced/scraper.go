@@ -79,6 +79,7 @@ func (s *scraper) scrape(ctx context.Context) (map[string][]prometheus.Metric, m
 			l = l.With("IngestionTime", aws.MillisecondsTimeValue(event.IngestionTime).UTC())
 
 			var instance *sessions.Instance
+
 			for i := range s.instances {
 				if s.instances[i].ResourceID == *event.LogStreamName {
 					instance = &s.instances[i]
@@ -89,9 +90,11 @@ func (s *scraper) scrape(ctx context.Context) (map[string][]prometheus.Metric, m
 				l.Errorf("Failed to find instance.")
 				continue
 			}
+
 			if *event.Timestamp <= instance.LastEventTimestamp {
 				continue
 			}
+
 			instance.LastEventTimestamp = *event.Timestamp
 			l = l.With("region", instance.Region).With("instance", instance.Instance)
 
