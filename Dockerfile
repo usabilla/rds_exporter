@@ -1,4 +1,4 @@
-FROM        alpine:latest
+FROM 644152709166.dkr.ecr.eu-west-1.amazonaws.com/usabilla/dev/dockerhub-mirror/alpine:latest
 
 COPY rds_exporter  /bin/
 # COPY config.yml           /etc/rds_exporter/config.yml
